@@ -1,35 +1,40 @@
-# Anemia Prediction AI 🩺
+# Anemia Prediction AI 🩺 (React Version)
 
-An advanced clinical diagnostic assistant built with Machine Learning and Flask. This application predicts the probability of anemia based on clinical blood reports.
+An advanced clinical diagnostic assistant built with **React**, **Vite**, and **Python Serverless Functions**. This application predicts the probability of anemia based on clinical blood reports.
 
-## 🚀 Features
-- **Production-Level ML Pipeline**: Includes preprocessing, feature engineering, and automated model selection.
-- **High Accuracy**: Logistic Regression model with **99.65% accuracy** and **1.0 ROC-AUC**.
-- **Modern UI**: Dark-themed, responsive Glassmorphism design for clinical use.
-- **Vercel Ready**: Pre-configured for seamless deployment to Vercel.
+## 🚀 Architecture
+- **Frontend**: React (Vite) + Vanilla CSS (Glassmorphism)
+- **Backend (API)**: Python Serverless Functions (hosted on Vercel)
+- **ML Engine**: Logistic Regression (99.65% Accuracy)
 
-## 📊 ML Pipeline Details
-1. **Preprocessing**: IQR outlier capping, scaling, and missing value handling.
-2. **Feature Engineering**: Derived medical features including Hematocrit and Estimated RBC.
-3. **Algorithms**: Trained on Logistic Regression, Random Forest, XGBoost, and SVM.
-4. **Optimization**: Automated ensemble methods for performance boosting.
-
-## 🛠️ Tech Stack
-- **Backend**: Python, Flask
-- **ML Libraries**: Scikit-learn, XGBoost, Pandas, NumPy, Imbalanced-learn
-- **Frontend**: HTML5, CSS3 (Vanilla), JavaScript (Fetch API)
-- **Deployment**: Vercel
-
-## 📦 Deployment
-This project is configured for Vercel. 
-1. Push to GitHub.
-2. Connect the repository to Vercel.
-3. Done!
+## 📁 Project Structure
+- `/api`: Contains the Python ML engine and serverless handler.
+- `/frontend`: The React application UI.
+- `vercel.json`: Configuration for deployment as a monorepo.
 
 ## 🧪 Quick Start (Local)
-1. Install dependencies: `pip install -r requirements.txt`
-2. Run the app: `python app.py`
-3. Visit: `http://127.0.0.1:5000`
+
+### 1. Backend
+The backend is designed for Vercel Serverless. To run it locally for development, you can use the Flask `app.py` or the Vercel CLI.
+
+### 2. Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## 📦 Deployment to Vercel
+This project is pre-configured for Vercel Monorepos.
+1. Push this folder to GitHub.
+2. In Vercel, create a new project from your repo.
+3. Vercel will automatically detect the `vercel.json` and deploy both the API and the React frontend.
+
+## 🛠️ Tech Stack
+- **Frontend**: React, Vite
+- **Backend**: Python, Vercel Functions
+- **ML Libraries**: Scikit-learn, XGBoost, Pandas, NumPy
+- **Styling**: Modern CSS3 (Glassmorphism)
 
 ---
 *Disclaimer: This is an AI-powered tool for informational purposes. Always consult with a qualified medical professional.*
