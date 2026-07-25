@@ -3,8 +3,43 @@ from flask_cors import CORS
 import pickle
 import pandas as pd
 import numpy as np
-from anemia_pipeline import predict_anemia
 
+def predict_anemia(hemoglobin, rbc, age, gender, mcv, mch, mchc, hematocrit=None):
+    try:
+        with open('anemia_prediction_model.pkl', 'rb') as f:
+            data = pickle.load(f)
+    except FileNotFoundError:
+        return "Model file not found. Please run the pipeline first."
+    
+    model = data['model']
+    scaler = data['scaler']
+    features = data['features']
+    
+    if hematocrit is None:
+        hematocrit = float(hemoglobin) * 3 / 100
+    
+    est_rbc = (float(hematocrit) * 10) / float(mcv)
+    
+    input_data = {
+        'Gender': int(gender),
+        'Hemoglobin': float(hemoglobin),
+        'MCH': float(mch),
+        'MCHC': float(mchc),
+        'MCV': float(mcv),
+        'Hematocrit': float(hematocrit),
+        'Estimated_RBC': est_rbc
+    }
+    
+    input_df = pd.DataFrame([input_data])[features]
+    input_scaled = scaler.transform(input_df)
+    
+    prob = model.predict_proba(input_scaled)[0, 1]
+    pred = model.predict(input_scaled)[0]
+    
+    return {
+        'Anemia': 'Yes' if pred == 1 else 'No',
+        'Probability': f"{prob:.2%}"
+    }
 app = Flask(__name__)
 CORS(app)
 
