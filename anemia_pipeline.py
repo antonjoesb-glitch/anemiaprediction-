@@ -14,7 +14,7 @@ from imblearn.over_sampling import SMOTE
 import pickle
 import warnings
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings('ignore')  
 
 # Set aesthetic style
 sns.set_theme(style="whitegrid", palette="muted")
