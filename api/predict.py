@@ -43,20 +43,16 @@ def predict_anemia(hemoglobin, rbc, age, gender, mcv, mch, mchc, hematocrit=None
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/predict', methods=['POST'])
+@app.route('/api/predict', methods=['POST'])
 def predict():
     try:
         data = request.json
         # Extract inputs
-        hemoglobin = float(data.get('hemoglobin'))
-        mch = float(data.get('mch'))
-        mchc = float(data.get('mchc'))
-        mcv = float(data.get('mcv'))
-        gender = int(data.get('gender'))
+        hemoglobin = float(data.get('hemoglobin', 0))
+        mch = float(data.get('mch', 0))
+        mchc = float(data.get('mchc', 0))
+        mcv = float(data.get('mcv', 1)) # avoid div by zero
+        gender = int(data.get('gender', 0))
         
         # Optional inputs that might not be used by the current model but requested in UI
         rbc = float(data.get('rbc', 0))
