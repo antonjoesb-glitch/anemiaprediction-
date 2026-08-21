@@ -1,1 +1,1 @@
-{"framework":"vite","builds":[{"src":"package.json","use":"@vercel/static-build"},{"src":"api/**/*.py","use":"@vercel/python"}],"routes":[{"src":"/api/(.*)","dest":"/api/"},{"src":"/(.*)","dest":"/index.html"}]}
+{"framework":"vite","rewrites":[{"source":"/(.*)","destination":"/index.html"}]}
