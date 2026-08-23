@@ -43,20 +43,25 @@ def predict_anemia(hemoglobin, rbc, age, gender, mcv, mch, mchc, hematocrit=None
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/api/predict', methods=['POST'])
-def predict():
+@app.route('/', defaults={'path': ''}, methods=['POST', 'GET'])
+@app.route('/<path:path>', methods=['POST', 'GET'])
+def predict(path):
+    if request.method == 'GET':
+        return jsonify({"status": "API is running. Send POST with data."})
     try:
-        data = request.json
+        data = request.json or {}
         # Extract inputs
-        hemoglobin = float(data.get('hemoglobin', 0))
-        mch = float(data.get('mch', 0))
-        mchc = float(data.get('mchc', 0))
-        mcv = float(data.get('mcv', 1)) # avoid div by zero
-        gender = int(data.get('gender', 0))
+        hemoglobin = float(data.get('hemoglobin') or 0)
+        mch = float(data.get('mch') or 0)
+        mchc = float(data.get('mchc') or 0)
+        mcv = float(data.get('mcv') or 1) # avoid div by zero
+        gender = int(data.get('gender') or 0)
         
         # Optional inputs that might not be used by the current model but requested in UI
-        rbc = float(data.get('rbc', 0))
-        age = float(data.get('age', 0))
+        rbc = float(data.get('rbc') or 0)
+        age = float(data.get('age') or 0)
+        hematocrit_val = data.get('hematocrit')
+        hematocrit = float(hematocrit_val) if hematocrit_val else None
         
         # Get prediction
         result = predict_anemia(
@@ -66,7 +71,8 @@ def predict():
             gender=gender,
             mcv=mcv,
             mch=mch,
-            mchc=mchc
+            mchc=mchc,
+            hematocrit=hematocrit
         )
         
         return jsonify(result)
