@@ -332,8 +332,7 @@ function App() {
                   {getRiskLevel(result.Probability).level} Risk
                 </div>
                 <p className="brief-explanation">
-                  Based on your supplied CBC parameters and our clinical AI model,
-                  you have a {getRiskLevel(result.Probability).level.toLowerCase()} probability of anemia.
+                  {result.Explanation || `Based on your supplied CBC parameters and our clinical AI model, you have a ${getRiskLevel(result.Probability).level.toLowerCase()} probability of anemia.`}
                 </p>
               </div>
             ) : (
@@ -343,6 +342,11 @@ function App() {
                 </div>
                 <h2>{result.Anemia === 'Yes' ? 'Anemia Detected' : 'No Anemia Found'}</h2>
                 <p className="probability">Confidence Score: {result.Probability}</p>
+                {result.Explanation && (
+                  <p className="brief-explanation" style={{ marginBottom: '24px' }}>
+                    {result.Explanation}
+                  </p>
+                )}
               </>
             )}
 

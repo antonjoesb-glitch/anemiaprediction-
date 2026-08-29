@@ -115,9 +115,41 @@ def predict_anemia_inline(hemoglobin, rbc, age, gender, mcv, mch, mchc, hematocr
     prob = model.predict_proba(input_scaled)[0, 1]
     pred = model.predict(input_scaled)[0]
     
+    prob_percentage = prob * 100
+    explanations = []
+    
+    hb_normal_min = 13.5 if int(gender) == 1 else 12.0
+    is_anemic_by_who = hemoglobin < hb_normal_min
+    
+    if hemoglobin > 0:
+        if is_anemic_by_who:
+            explanations.append(f"Your Hemoglobin level is {hemoglobin:.1f} g/dL, which is below the healthy threshold ({hb_normal_min} g/dL for your gender). This is the primary indicator of anemia.")
+        elif prob_percentage > 40:
+            explanations.append(f"Your Hemoglobin level ({hemoglobin:.1f} g/dL) is normal, but other red blood cell indices show anomalies.")
+            
+        if mcv > 0:
+            if mcv < 80:
+                explanations.append(f"Your MCV is {mcv:.1f} fL, which is abnormally small (Microcytic). This strongly suggests iron deficiency.")
+            elif mcv > 100:
+                explanations.append(f"Your MCV is {mcv:.1f} fL, which is abnormally large (Macrocytic). This often points to Vitamin B12 or Folate deficiency.")
+                
+        if mch > 0 and mch < 27:
+            explanations.append(f"Your MCH is low at {mch:.1f} pg, meaning your red blood cells carry less hemoglobin than normal (hypochromic).")
+            
+    if not explanations:
+        if prob_percentage < 30:
+            explanation_text = "All key Complete Blood Count (CBC) metrics are within healthy reference ranges. Maintain a balanced, iron-rich diet to keep these levels optimal."
+        else:
+            explanation_text = "While primary metrics appear normal, subtle multi-variable correlations in your blood indices (such as MCHC and RBC count) slightly elevated your algorithmic risk score."
+    else:
+        explanation_text = " ".join(explanations)
+        if is_anemic_by_who or prob_percentage > 50:
+            explanation_text += " Recommendation: Please consult a physician for a clinical diagnosis and potential dietary or supplement interventions."
+
     return {
         'Anemia': 'Yes' if pred == 1 else 'No',
-        'Probability': f"{prob:.2%}"
+        'Probability': f"{prob:.2%}",
+        'Explanation': explanation_text
     }
 
 @app.route('/', defaults={'path': ''}, methods=['POST', 'GET'])
