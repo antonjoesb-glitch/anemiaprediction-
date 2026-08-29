@@ -100,9 +100,12 @@ function App() {
         body: formDataObj
       })
 
-      if (!response.ok) throw new Error('Extraction failed')
-
       const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Server error occurred')
+      }
+
       if (data.success) {
         const extracted = data.extracted_values
         setUploadData(prev => ({
