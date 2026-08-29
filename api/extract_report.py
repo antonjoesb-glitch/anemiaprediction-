@@ -15,6 +15,7 @@ PATTERNS = {
     'mch':        r'\bmch\b[^\d]+([\d]+\.?[\d]*)',
     'mchc':       r'\bmchc\b[^\d]+([\d]+\.?[\d]*)',
     'rbc':        r'\brbc\b[^\d]+([\d]+\.?[\d]*)',
+    'age':        r'\bage\s*[:\s]*(\d+)',
 }
 
 def extract_text_from_pdf(file_bytes):
@@ -43,6 +44,14 @@ def parse_values(text):
                 values[key] = float(match.group(1))
             except ValueError:
                 pass
+                
+    gender_match = re.search(r'\b(?:sex|gender)\s*[:\s]*\b(male|female)\b', text)
+    if gender_match:
+        if gender_match.group(1) == 'male':
+            values['gender'] = 1
+        else:
+            values['gender'] = 0
+            
     return values
 
 @app.route('/', defaults={'path': ''}, methods=['POST', 'GET'])
@@ -73,8 +82,8 @@ def extract_report(path):
         extracted_values = parse_values(text)
         
         # Gender and Age might be POST fields that are optionally sent
-        gender = int(request.form.get('gender') or 0)
-        age = float(request.form.get('age') or 0)
+        gender = int(request.form.get('gender') or extracted_values.get('gender', 0))
+        age = float(request.form.get('age') or extracted_values.get('age', 25))
         
         # Now call the model to get probability, using defaults for missing report values
         hemoglobin = float(extracted_values.get('hemoglobin', 0))

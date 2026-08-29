@@ -110,13 +110,21 @@ function App() {
         const extracted = data.extracted_values
         setUploadData(prev => ({
           ...prev,
+          gender: extracted.gender?.toString() || '',
+          age: extracted.age?.toString() || '',
           hemoglobin: extracted.hemoglobin || '',
           rbc: extracted.rbc || '',
           mcv: extracted.mcv || '',
           mch: extracted.mch || '',
           mchc: extracted.mchc || '',
         }))
-        setUploadStatus('success')
+
+        if (extracted.prediction) {
+          setResult(extracted.prediction);
+        } else {
+          alert('Extraction worked but prediction failed: ' + extracted.prediction_error)
+        }
+        setUploadStatus('success');
       } else {
         throw new Error(data.error || 'Unknown error')
       }
