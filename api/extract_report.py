@@ -93,7 +93,11 @@ def extract_report(path):
         rbc = float(extracted_values.get('rbc', 0))
         
         try:
-            from predict import predict_anemia
+            try:
+                from predict import predict_anemia
+            except ImportError:
+                from api.predict import predict_anemia
+                
             result = predict_anemia(
                 hemoglobin=hemoglobin,
                 rbc=rbc,
