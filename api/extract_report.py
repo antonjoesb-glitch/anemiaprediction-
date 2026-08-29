@@ -9,14 +9,6 @@ import io
 app = Flask(__name__)
 CORS(app)
 
-PATTERNS = {
-    'hemoglobin': r'(?:hemo?globin|hgb|hb)[^\d]+([\d]+\.?[\d]*)',
-    'mcv':        r'\bmcv\b[^\d]+([\d]+\.?[\d]*)',
-    'mch':        r'\bmch\b[^\d]+([\d]+\.?[\d]*)',
-    'mchc':       r'\bmchc\b[^\d]+([\d]+\.?[\d]*)',
-    'rbc':        r'\brbc\b[^\d]+([\d]+\.?[\d]*)',
-    'age':        r'\bage\s*[:\s]*(\d+)',
-}
 
 def extract_text_from_pdf(file_bytes):
     text = ""
@@ -53,23 +45,38 @@ def extract_text_from_image(file_bytes):
         except Exception:
             raise Exception("Image OCR is not supported natively in this cloud environment. Please upload a PDF report instead.")
 
+def extract_after_keyword(line, keywords):
+    for kw in keywords:
+        match = re.search(rf'{kw}[^\d]*(\d+\.?\d*)', line)
+        if match:
+            return float(match.group(1))
+    return None
+
 def parse_values(text):
     text = text.lower()
     values = {}
-    for key, pattern in PATTERNS.items():
-        match = re.search(pattern, text)
-        if match:
-            try:
-                values[key] = float(match.group(1))
-            except ValueError:
-                pass
-                
+    
+    keywords_map = {
+        'hemoglobin': [r'hemo?globin', r'\bhgb\b', r'\bhb\b'],
+        'mcv':        [r'\bmcv\b', r'mean corpuscular volume'],
+        'mch':        [r'\bmch\b', r'mean corpuscular hemoglobin'],
+        'mchc':       [r'\bmchc\b'],
+        'rbc':        [r'\brbc\b', r'red blood cell'],
+        'age':        [r'\bage\b'],
+        'hematocrit': [r'hematocrit', r'\bpcv\b', r'packed cell volume'],
+    }
+    
+    # Go line by line. This prevents `\n` from causing us to grab random header numbers!
+    for line in text.split('\n'):
+        for key, kws in keywords_map.items():
+            if key not in values:
+                val = extract_after_keyword(line, kws)
+                if val is not None:
+                    values[key] = val
+                    
     gender_match = re.search(r'\b(?:sex|gender)\s*[:\s]*\b(male|female)\b', text)
     if gender_match:
-        if gender_match.group(1) == 'male':
-            values['gender'] = 1
-        else:
-            values['gender'] = 0
+        values['gender'] = 1 if gender_match.group(1) == 'male' else 0
             
     return values
 
