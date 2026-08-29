@@ -27,12 +27,31 @@ def extract_text_from_pdf(file_bytes):
                 text += page_text + "\n"
     return text
 
+import requests
+
 def extract_text_from_image(file_bytes):
     try:
-        image = Image.open(io.BytesIO(file_bytes))
-        return pytesseract.image_to_string(image)
-    except Exception as e:
-        raise Exception("Image OCR is not supported in this cloud environment. Please upload a PDF report instead.")
+        # Try OCR.space free API first (works natively on Vercel without Tesseract binary)
+        response = requests.post(
+            'https://api.ocr.space/parse/image',
+            files={'file': ('image.jpg', file_bytes, 'image/jpeg')},
+            data={'apikey': 'helloworld', 'language': 'eng'}
+        )
+        result = response.json()
+        if result.get('IsErroredOnProcessing') or not result.get('ParsedResults'):
+            raise Exception("OCR API Failed or returned no results")
+        
+        text = ""
+        for item in result.get('ParsedResults', []):
+            text += item.get('ParsedText', '') + "\n"
+        return text
+    except Exception as api_err:
+        try:
+            # Fallback to local pytesseract (if running locally and Tesseract is installed)
+            image = Image.open(io.BytesIO(file_bytes))
+            return pytesseract.image_to_string(image)
+        except Exception:
+            raise Exception("Image OCR is not supported natively in this cloud environment. Please upload a PDF report instead.")
 
 def parse_values(text):
     text = text.lower()
