@@ -4,3 +4,7 @@ pandas
 numpy
 scikit-learn
 gunicorn
+pdfplumber
+pytesseract
+pillow
+pdf2image
