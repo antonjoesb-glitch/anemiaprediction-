@@ -54,6 +54,46 @@ def parse_values(text):
             
     return values
 
+import pickle
+import pandas as pd
+
+def predict_anemia_inline(hemoglobin, rbc, age, gender, mcv, mch, mchc, hematocrit=None):
+    try:
+        with open('anemia_prediction_model.pkl', 'rb') as f:
+            data = pickle.load(f)
+    except FileNotFoundError:
+        return {"error": "Model file not found. Please run the pipeline first."}
+    
+    model = data['model']
+    scaler = data['scaler']
+    features = data['features']
+    
+    if hematocrit is None or hematocrit == 0:
+        hematocrit = float(hemoglobin) * 3 / 100
+    
+    est_rbc = (float(hematocrit) * 10) / float(mcv) if mcv else 0
+    
+    input_data = {
+        'Gender': int(gender),
+        'Hemoglobin': float(hemoglobin),
+        'MCH': float(mch),
+        'MCHC': float(mchc),
+        'MCV': float(mcv),
+        'Hematocrit': float(hematocrit),
+        'Estimated_RBC': est_rbc
+    }
+    
+    input_df = pd.DataFrame([input_data])[features]
+    input_scaled = scaler.transform(input_df)
+    
+    prob = model.predict_proba(input_scaled)[0, 1]
+    pred = model.predict(input_scaled)[0]
+    
+    return {
+        'Anemia': 'Yes' if pred == 1 else 'No',
+        'Probability': f"{prob:.2%}"
+    }
+
 @app.route('/', defaults={'path': ''}, methods=['POST', 'GET'])
 @app.route('/<path:path>', methods=['POST', 'GET'])
 def extract_report(path):
@@ -93,12 +133,7 @@ def extract_report(path):
         rbc = float(extracted_values.get('rbc', 0))
         
         try:
-            try:
-                from predict import predict_anemia
-            except ImportError:
-                from api.predict import predict_anemia
-                
-            result = predict_anemia(
+            result = predict_anemia_inline(
                 hemoglobin=hemoglobin,
                 rbc=rbc,
                 age=age,
